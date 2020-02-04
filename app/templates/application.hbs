@@ -1,5 +1,65 @@
-{{!-- The following component displays Ember's default welcome message. --}}
-<WelcomePage />
-{{!-- Feel free to remove this! --}}
+<h1>Ember Concurrency Auto-tracking Getter Bug</h1>
+<hr>
+<h2>
+  Without
+  <code>
+    yield
+  </code>
+</h2>
 
-{{outlet}}
+<TaskExample @t={{0}} />
+
+<h2>
+  With
+  <code>
+    yield
+  </code>
+</h2>
+
+<TaskExample @t={{10}} />
+
+<hr>
+
+<h2>Source</h2>
+
+<h3>application.hbs</h3>
+
+<pre>&lt;h2>Without &lt;code>yield&lt;/code>&lt;/h2>
+
+&lt;TaskExample @t=\{{0}} />
+
+&lt;h2>With &lt;code>yield&lt;/code>&lt;/h2>
+
+&lt;TaskExample @t=\{{10}} /></pre>
+
+<h3>task-example.hbs</h3>
+
+<pre>&lt;button type="button" \{{on "click" (perform this.task @t)}}>
+  Run
+&lt;/button>
+
+\{{this.result}}</pre>
+
+<h3>task-example.js</h3>
+
+<pre>import Component from "@glimmer/component";
+import { timeout } from "ember-concurrency";
+import { task } from "ember-concurrency-decorators";
+
+export default class AutoTrackingExampleComponent extends Component {
+  constructor() {
+    super(...arguments);
+  }
+
+  get result() {
+    return this.task.last?.value;
+  }
+
+  @task
+  *task(t = 0) {
+    if (t) {
+      yield timeout(t);
+    }
+    return Math.random();
+  }
+}</pre>
